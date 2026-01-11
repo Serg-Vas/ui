@@ -19,16 +19,9 @@ on('onClientResourceStart', (res) => {
   emit('logic:freemode:statusRequest');
 });
 
-RegisterNuiCallbackType("presetA");
-on("__cfx_nui:presetA", (data, cb) => {
-  console.log("[ui] NUI presetA", data);
-  emit("ceui:presetA", data || {});
-  cb({ ok: true });
-});
-
-RegisterNuiCallbackType("presetB");
-on("__cfx_nui:presetB", (data, cb) => {
-  console.log("[ui] NUI presetB", data);
-  emit("ceui:presetB", data || {});
+RegisterNuiCallbackType("appearance:apply");
+on("__cfx_nui:appearance:apply", (data, cb) => {
+  console.log("[ui] NUI appearance:apply", data);
+  emit("logic:appearance:apply", data || {});
   cb({ ok: true });
 });
