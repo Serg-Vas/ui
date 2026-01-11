@@ -5,3 +5,8 @@ client_script {
     'client/main.js',
 }
 
+ui_page 'ui/dist/index.html'
+
+files {
+    'ui/dist/**',
+}
