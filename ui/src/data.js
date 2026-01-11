@@ -51,3 +51,30 @@ export const FACE_FEATURES = {
   18: { label: "Chin Bone Low" },
   19: { label: "Chin Bone Length" },
 };
+
+export const EYE_COLORS = {
+  0: "Black",
+  1: "Dark Gray",
+  2: "Gray",
+  3: "Light Gray",
+  4: "Pale Blue",
+  5: "Sky Blue",
+  6: "Blue",
+  7: "Dark Blue",
+  8: "Brown",
+  9: "Dark Brown",
+  10: "Orange",
+  11: "Red",
+  12: "Purple",
+  13: "Green",
+  14: "Hazel",
+  15: "Gold",
+};
+
+export const MALE_HEAD_TYPES = {
+  ranges: [[0, 20], [42, 44]]
+};
+
+export const FEMALE_HEAD_TYPES = {
+  ranges: [[21, 41], [45, 45]]
+};

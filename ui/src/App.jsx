@@ -1,9 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { COMPONENT_NAMES, HEAD_OVERLAYS, FACE_FEATURES } from "./data.js";
+import { COMPONENT_NAMES, HEAD_OVERLAYS, FACE_FEATURES, EYE_COLORS, MALE_HEAD_TYPES, FEMALE_HEAD_TYPES } from "./data.js";
 import { EXCLUDED_COMPONENT_IDS, EXCLUDED_OVERLAY_IDS } from "./exclusions.js";
 import Sex from "./Sex.jsx";
 
 const resource = (window.GetParentResourceName && window.GetParentResourceName()) || "ui";
+
+function buildHeadTypeArray(ranges) {
+  const max = Math.max(...ranges.flat());
+
+  return Array.from({ length: max + 1 }, (_, v) => v)
+    .filter(v => ranges.some(([a, b]) => v >= a && v <= b))
+    .map((value, index) => ({ index, value }));
+}
+
+const MALE_HEAD_VALUES = buildHeadTypeArray(MALE_HEAD_TYPES.ranges);
+const FEMALE_HEAD_VALUES = buildHeadTypeArray(FEMALE_HEAD_TYPES.ranges);
 
 async function post(name, payload) {
   try {
@@ -31,6 +42,7 @@ export default function App() {
   const [overlays, setOverlays] = useState({});
   const [faceFeatures, setFaceFeatures] = useState({});
   const [headBlend, setHeadBlend] = useState({ shapeFirst: 0, skinFirst: 0 });
+  const [eyeColor, setEyeColor] = useState(0);
   const [info, setInfo] = useState(null);
   const [sex, setSex] = useState(null);
   const [sexApplied, setSexApplied] = useState(false);
@@ -105,6 +117,11 @@ export default function App() {
           shapeFirst: msg.payload.headBlend.shapeFirst ?? 0,
           skinFirst: msg.payload.headBlend.skinFirst ?? 0,
         });
+      }
+
+      // Update eye color
+      if (msg.payload?.eyeColor !== undefined) {
+        setEyeColor(msg.payload.eyeColor);
       }
     };
     window.addEventListener("message", handler);
@@ -217,6 +234,13 @@ export default function App() {
     setIsChangingSex(true);
     setSexApplied(true);
     post("appearance:changeSex", { sex: nextSex });
+  }
+
+  function applyEyeColor(color) {
+    setEyeColor(color);
+    post("appearance:apply", {
+      eyeColor: color,
+    });
   }
 
   function Slider({ label, value, min, max, step, onChange }) {
@@ -371,21 +395,44 @@ export default function App() {
                 <div style={styles.grid}>
                   <Slider
                     label="Head Type"
-                    value={headBlend.shapeFirst}
+                    value={sex === 1 ? FEMALE_HEAD_VALUES.find(h => h.value === headBlend.shapeFirst)?.index ?? 0 : MALE_HEAD_VALUES.find(h => h.value === headBlend.shapeFirst)?.index ?? 0}
                     min={0}
-                    max={19}
+                    max={sex === 1 ? FEMALE_HEAD_VALUES.length - 1 : MALE_HEAD_VALUES.length - 1}
                     step={1}
-                    onChange={(v) => applyHeadBlend({ shapeFirst: v })}
+                    onChange={(index) => {
+                      const headArray = sex === 1 ? FEMALE_HEAD_VALUES : MALE_HEAD_VALUES;
+                      const actualValue = headArray[index]?.value ?? 0;
+                      applyHeadBlend({ shapeFirst: actualValue });
+                    }}
                   />
                   <Slider
                     label="Skin"
                     value={headBlend.skinFirst}
                     min={0}
-                    max={19}
+                    max={45}
                     step={1}
                     onChange={(v) => applyHeadBlend({ skinFirst: v })}
                   />
                 </div>
+              </div>
+            )}
+
+            <h3 style={{ margin: 0, marginBottom: 8, marginTop: 16 }}>Eye Color</h3>
+
+            {info && (
+              <div style={styles.section}>
+                <div style={styles.label}>Eye Color</div>
+                <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 8 }}>
+                  {EYE_COLORS[eyeColor] || `Color ${eyeColor}`}
+                </div>
+                <Slider
+                  label="Color"
+                  value={eyeColor}
+                  min={0}
+                  max={15}
+                  step={1}
+                  onChange={(v) => applyEyeColor(v)}
+                />
               </div>
             )}
 
