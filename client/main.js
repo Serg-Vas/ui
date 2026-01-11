@@ -1,23 +1,19 @@
 let readyPed = 0;
-let appearanceInfo = null; // Cache appearance data here
-// SetNuiFocus(true, true);
+let appearanceInfo = null;
 
 on('logic:freemode:ready', ({ ped, model }) => {
   readyPed = ped;
   console.log(`[ui] freemode ready ped=${ped} model=${model}`);
 
-  // Safe place to do overlay / component sync
   emit('logic:component:syncRequest');
   emit('logic:appearance:infoRequest');
 });
 
-// If this resource starts AFTER logic and misses the ready event:
 on('onClientResourceStart', (res) => {
   console.log("ui onClientResourceStart", res);
   if (res !== GetCurrentResourceName()) return;
   SetNuiFocus(true, true);
   console.log("ui requesting freemode status");
-  // Ask logic resource to confirm or trigger freemode
   emit('logic:freemode:statusRequest');
   emit('logic:appearance:infoRequest');
 });
@@ -29,9 +25,15 @@ on("__cfx_nui:appearance:apply", (data, cb) => {
   cb({ ok: true });
 });
 
-// Cache the appearance info when it arrives
+RegisterNuiCallbackType("appearance:changeSex");
+on("__cfx_nui:appearance:changeSex", (data, cb) => {
+  console.log("[ui] NUI appearance:changeSex", data);
+  emit("logic:appearance:changeSex", Number(data?.sex ?? 0));
+  cb({ ok: true });
+});
+
 on('ui:appearance:info', (info) => {
   console.log("[ui] appearance:info", JSON.stringify(info));
-  appearanceInfo = info; // Store it here
+  appearanceInfo = info;
   SendNUIMessage({ type: 'appearance:info', payload: info });
 });
